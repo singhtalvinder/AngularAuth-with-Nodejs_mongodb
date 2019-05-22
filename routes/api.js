@@ -16,6 +16,23 @@ mongoose.connect(db, err=>{
     }
 })
 
+function verifyToken(req,res,next) {
+    if(!req.headers.authorization) {
+        return res.status(401).send('Unauthorized request')
+    }
+    // split on space which gives the array ' Bearer xx.yy.zz' and we just need the token(index 1).
+    let token = req.headers.authorization.split(' ')[1]
+    if(token === 'null') {
+        return res.status(401).send('Unauthorized request')
+    }
+    let payload = jwt.verify(token, 'secretKey')
+    if(!payload){
+        return res.status(401).send('Unauthorized request')       
+    }
+    req.userId = payload.subject
+    next()
+}
+
 // When a request is made to 'host:PORT\api' ,this fn gets executed.
 router.get('/', (req, res)=>{
     res.send('From API route.')
@@ -50,6 +67,7 @@ router.post('/register', (req, res) => {
 router.post('/login', (req, res) => {
     let userData = req.body
 
+    console.log('Userdata for login: ' + userData.email, userData.password)
     // Check if user already registered.
     User.findOne({email: userData.email}, (error, user) => {
         if (error) {
@@ -107,7 +125,7 @@ router.get('/events', (req, res) => {
 })
 
 // Just to simplify, create some hard coded events.
-router.get('/special', (req, res) => {
+router.get('/special', verifyToken, (req, res) => {
     let events= [
         {
             "_id": "1",
