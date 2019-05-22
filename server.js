@@ -1,10 +1,13 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const cors = require('cors')
+
 const api = require('./routes/api')
 
 const PORT = 3000
 const app= express()
 
+app.use(cors())
 app.use(bodyParser.json())
 
 // Route the request made to(1st-param) 'host:PORT\api' to (2nd-param) api route.
